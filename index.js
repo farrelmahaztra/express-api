@@ -1,21 +1,18 @@
 const express = require('express');
+const cors = require('cors')
 const app = express()
-const books = []
+let books = []
 
 // Parse JSON
 app.use(express.json());
 
-// Getting our list of books
-app.get('/books', function(req, res){
-  res.json({
-    books
-  });
-});
+// Enable CORS
+app.use(cors())
 
-// Adding to our list of books
-app.post('/add', (req, res) => {
+// Middleware to validate
+app.use((req, res, next) => {
   const token = req.get("Authorization");
-  const { title, author } = req.body 
+  const { title } = req.body 
 
   // Ensuring a token is sent
   if (!token) {
@@ -38,6 +35,20 @@ app.post('/add', (req, res) => {
     });
   }
 
+  next()
+})
+
+// Getting our list of books
+app.get('/books', function(req, res){
+  res.json({
+    books
+  });
+});
+
+// Adding to our list of books
+app.post('/add', (req, res) => {
+  const { title, author } = req.body 
+
   // Do stuff with the body here, like adding this to a database.
   books.push({
     title, author
@@ -46,6 +57,19 @@ app.post('/add', (req, res) => {
   // Send a success message
   return res.status(200).json({
     message: "Book successfully added" 
+  })
+})
+
+// Deleting a book from our list
+app.delete('/delete', (req, res) => {
+  const { title } = req.body 
+
+  // Do stuff with the body here, like deleting this from a database.
+  books = books.filter(book => book.title !== title)
+
+  // Send a success message
+  return res.status(200).json({
+    message: "Book successfully deleted" 
   })
 })
 
